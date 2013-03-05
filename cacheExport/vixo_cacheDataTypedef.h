@@ -157,7 +157,7 @@ struct struct_cacheExportInfo
 			MFnMesh fnMesh(dagPath);
 			cacheKeepMesh[i].vertexNum=fnMesh.numVertices();
 			cacheKeepMesh[i].faceNum=fnMesh.numPolygons();
-			cout<<dagPath.partialPathName().asChar()<<"          "<<cacheKeepMesh[i].vertexNum<<endl;
+			//cout<<dagPath.partialPathName().asChar()<<"          "<<cacheKeepMesh[i].vertexNum<<endl;
 			cacheKeepMesh[i].polygonCount.clear();
 			cacheKeepMesh[i].polygonConn.clear();
 			for(int j=0;j<fnMesh.numPolygons();j++)
@@ -184,7 +184,7 @@ struct struct_cacheExportInfo
 			cacheAddMesh[i].faceNum=fnMesh.numPolygons();
 			cacheAddMesh[i].polygonCount.clear();
 			cacheAddMesh[i].polygonConn.clear();
-			cout<<dagPath.partialPathName().asChar()<<"          "<<cacheAddMesh[i].vertexNum<<endl;
+			//cout<<dagPath.partialPathName().asChar()<<"          "<<cacheAddMesh[i].vertexNum<<endl;
 			for(int j=0;j<fnMesh.numPolygons();j++)
 			{
 				cacheAddMesh[i].polygonCount.push_back( fnMesh.polygonVertexCount(j) );
@@ -209,7 +209,7 @@ struct struct_cacheExportInfo
 			cacheUpdateMesh[i].faceNum=fnMesh.numPolygons();
 			cacheUpdateMesh[i].polygonCount.clear();
 			cacheUpdateMesh[i].polygonConn.clear();
-			cout<<dagPath.partialPathName().asChar()<<"          "<<cacheUpdateMesh[i].vertexNum<<endl;
+			//cout<<dagPath.partialPathName().asChar()<<"          "<<cacheUpdateMesh[i].vertexNum<<endl;
 			for(int j=0;j<fnMesh.numPolygons();j++)
 			{
 				cacheUpdateMesh[i].polygonCount.push_back( fnMesh.polygonVertexCount(j) );
@@ -279,6 +279,15 @@ struct struct_prepareInfo
 	MString visFileNamePre;
 	MString animDir;
 	MString animFileNamePre;
+
+	//adding
+	MStringArray objExportFull,
+		cacheFull,
+		animsFull,
+		nothingToDoFull,
+		cacheNothingToDoFull,
+		animNothingToDoFull,
+		objDelFull;
 };
 
 struct structAnimInfo

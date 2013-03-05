@@ -116,10 +116,10 @@ MStatus vixo_cacheExport::doIt(const MArgList& args)
 
 	//MStringArray allNameSpace;
 	//getAllNameSpace(nodes,cacheVisDel,allNameSpace);
-
+	cout<<"here0000"<<endl;
 	vector<struct_prepareInfo> prepareData;
 	collectPrepareData(isCloth,dirPath,cacheDirName,animDirName,cacheForce,nodes,cacheVisDel,prepareData,nameSpaceMappingArr);
-
+	cout<<"1111"<<endl;
 	/*
 	
 	MString nameSpace;
@@ -180,12 +180,16 @@ void vixo_cacheExport::exportCacheVis(vector<struct_prepareInfo>& prepareData,in
 	time_t t=time(0);
 	char tmp[20];
 	::strftime(tmp,sizeof(tmp),"%Y-%m-%d %X",localtime(&t));
-
+	cout<<"2222"<<startFrame<<" "<<endFrame<<" "<<beginIdx<<" "<<endIdx<<endl;;
 	for(int i=beginIdx;i<endIdx;i++)
 	{
+		cout<<"3333"<<endl;
 		diffCacheNewOld(prepareData[i],cacheExportData[i-beginIdx]);
+		cout<<"3333"<<endl;
 		prepareCacheData(startFrame,endFrame,tmp,prepareData[i],cacheExportData[i-beginIdx]);
+		cout<<"3333"<<endl;
 		prepareVisData(startFrame,endFrame,tmp,prepareData[i],visExportData[i-beginIdx]);
+		cout<<"3333"<<endl;
 	}
 	MGlobal::displayInfo("=========begin export===========");
 	for(int i=beginIdx;i<endIdx;i++)
@@ -708,6 +712,11 @@ void vixo_cacheExport::diffCacheNewOld(struct_prepareInfo& prepareDataEle,struct
 		fin.close();
 	}
 
+	for(int i=0;i<prepareDataEle.cache.length();i++)
+		{
+		//cout<<"debug:"<<prepareDataEle.cache[i].asChar()<<endl;
+		}
+
 	minusSet(prepareDataEle.cache,cacheDataEle.cacheFileExist,cacheDataEle.cacheAdd);//cacheAdd=caches-cacheFileExist
 	andSet(prepareDataEle.cache,cacheDataEle.cacheFileExist,cacheDataEle.cacheUpdate);//cacheUpdate=caches&&cacheFileExist
 	MStringArray cacheUnExist;
@@ -733,7 +742,7 @@ void vixo_cacheExport::prepareCacheData(int start,int end,char time[20],struct_p
 	fstream fin(cacheFileName.asChar(),ios_base::in|ios_base::binary);
 	for(int i=0;i<cacheDataEle.cacheKeep.length();i++)
 	{
-		//cout<<"keep:"<<cacheKeep[i].asChar()<<endl;
+		//cout<<"keep:"<<cacheDataEle.cacheKeep[i].asChar()<<endl;
 		::strcpy(cacheDataEle.cacheKeepTime[i].objName,cacheDataEle.cacheKeep[i].asChar());
 		int idx=inSetIndex(cacheDataEle.cacheKeep[i],cacheDataEle.cacheFileExist);
 		//cout<<idx<<endl;
@@ -775,6 +784,7 @@ void vixo_cacheExport::prepareCacheData(int start,int end,char time[20],struct_p
 	cacheDataEle.cacheAddDags.setLength(cacheDataEle.cacheAdd.length());
 	for(int i=0;i<cacheDataEle.cacheAdd.length();i++)
 	{
+		//cout<<"add:"<<cacheDataEle.cacheAdd[i].asChar()<<endl;
 		strcpy(cacheDataEle.cacheAddTime[i].objName,cacheDataEle.cacheAdd[i].asChar());
 		strcpy(cacheDataEle.cacheAddTime[i].lastestUpdateTime,time);
 
@@ -810,6 +820,7 @@ void vixo_cacheExport::prepareCacheData(int start,int end,char time[20],struct_p
 	fin.open(cacheFileName.asChar(),ios_base::in|ios_base::binary);
 	for(int i=0;i<cacheDataEle.cacheUpdate.length();i++)
 	{
+		//cout<<"update:"<<cacheDataEle.cacheUpdate[i].asChar()<<endl;
 		strcpy(cacheDataEle.cacheUpdateTime[i].objName,cacheDataEle.cacheUpdate[i].asChar());
 		strcpy(cacheDataEle.cacheUpdateTime[i].lastestUpdateTime,time);
 
@@ -955,7 +966,9 @@ void vixo_cacheExport::collectPrepareData(bool isCloth,MString dirPath,MString c
 	MString nameSpace,objName;
 	for(int i=0;i<allNodes.length();i++)
 	{
+		//cout<<allNodes[i].asChar()<<endl;
 		splitName(allNodes[i],nameSpace,objName);
+		//cout<<nameSpace.asChar()<<" "<<objName.asChar()<<endl;
 		int idx=inSetIndex(nameSpace,allNameSpace);
 		prepareData[idx].objExport.append(objName);
 	}
@@ -981,7 +994,7 @@ void vixo_cacheExport::collectPrepareData(bool isCloth,MString dirPath,MString c
 			prepareData[i].visFileNamePre=dirPath+"/"+prepareData[i].ligNameSpace+"/"+"vis";
 			prepareData[i].animFileNamePre=dirPath+"/"+prepareData[i].ligNameSpace+"/"+"anim";
 		}
-		//cout<<prepareData[i].cacheFileNamePre.asChar()<<endl;
+		cout<<prepareData[i].cacheFileNamePre.asChar()<<endl;
 		
 		prepareData[i].animDir=dirPath+"/"+animDirName+"/"+prepareData[i].ligNameSpace+"/";
 		diff_cacheAnimNothing(cacheForce,prepareData[i]);
@@ -1138,12 +1151,24 @@ void vixo_cacheExport::getAllNameSpace(const MStringArray& allNodes,const MStrin
 void vixo_cacheExport::splitName(const MString& node,MString & nameSpace,MString & objName)
 {
 	MStringArray tempSplit,temp4prefix;
-	node.split(':',tempSplit);
-	objName=tempSplit[tempSplit.length()-1];
-
 	node.split('|',tempSplit);
 	tempSplit[tempSplit.length()-1].split(':',temp4prefix);
-	nameSpace=temp4prefix[temp4prefix.length()-2];
+	nameSpace=temp4prefix[0];
+	objName=MString("");
+	for(int i=0;i<temp4prefix.length()-1;i++)
+	{
+		objName=objName+temp4prefix[i]+MString(":");
+	}
+	objName=objName+temp4prefix[temp4prefix.length()-1];
+	cout<<"mmmm:"<<tempSplit[tempSplit.length()-1].asChar()<<endl;
+	cout<<"aaaa:"<<temp4prefix.length()<<objName.asChar()<<endl;
+// 	temp4prefix[1]+":"+temp4prefix[2]
+// 
+// 	objName=tempSplit[tempSplit.length()-1];
+// 
+// 	node.split('|',tempSplit);
+// 	tempSplit[tempSplit.length()-1].split(':',temp4prefix);
+// 	nameSpace=temp4prefix[temp4prefix.length()-2];
 }
 
 void vixo_cacheExport::anim_export(MString nameSpace,MString animFileNamePre,char time[20],MStringArray anims,MStringArray animNeedDel,MStringArray nothingToDo,MString dirPath,int start,int end)
@@ -1159,8 +1184,8 @@ void vixo_cacheExport::anim_export(MString nameSpace,MString animFileNamePre,cha
 	getAnimOldData(animFileName,animIndexFileName,animInFile,animInFileData);
 	//~¶ÁÈ¡¾ÉÊý¾Ý
 
-	for(int i=0;i<animInFile.length();i++)
-		cout<<animInFile[i].asChar()<<endl;
+	//for(int i=0;i<animInFile.length();i++)
+	//	cout<<animInFile[i].asChar()<<endl;
 
 	MStringArray allNeedDel;
 	orSet(animNeedDel,nothingToDo,allNeedDel);
@@ -1181,7 +1206,7 @@ void vixo_cacheExport::anim_export(MString nameSpace,MString animFileNamePre,cha
 		int index=inSetIndex(anims[i],animInFile);
 		if(index==-1)
 		{
-			cout<<anims[i]<<endl;
+			//cout<<anims[i]<<endl;
 			animAdd.append(anims[i]);
 			structAnimInfo ele(anims[i],time,matrixResult,i);
 			animAddData.push_back(ele);
@@ -1351,7 +1376,11 @@ void vixo_cacheExport::minusSet(MStringArray& seta,MStringArray& setb,MStringArr
 	for(int i=0;i<seta.length();i++)
 	{
 		if(!inSet(seta[i],setb))
+		{
 			res.append(seta[i]);
+			//cout<<"minus"<<seta[i].asChar()<<endl;
+		}
+			
 	}
 }
 
