@@ -25,7 +25,7 @@ cacheImport::~cacheImport(void)
 
 MStatus cacheImport::compute( const MPlug& plug, MDataBlock& data )
 {
-	//cout<<"cccccccccccc"<<endl;
+	cout<<"cccccccccccc"<<endl;
 	MStatus stat=MS::kSuccess;
 	if(plug.array()!=outMesh)
 		return MS::kSuccess;
@@ -40,20 +40,23 @@ MStatus cacheImport::compute( const MPlug& plug, MDataBlock& data )
 	if(mapIter==allObjTrans.end())
 		return MS::kSuccess;
 	MString objTrans=mapIter->second;
-	//cout<<objTrans.asChar()<<endl;
+	cout<<objTrans.asChar()<<endl;
 
 	MDataHandle timeHandle=data.inputValue(time);
 	int t=timeHandle.asTime().as(MTime::Unit::kFilm);
 
 	MArrayDataHandle inMeshHandle=data.inputArrayValue(inMesh);
-	//cout<<"is jump"<<endl;
+	cout<<"is jump"<<endl;
 	if(!inMeshHandle.jumpToElement(plugIdx))
 		return MS::kSuccess;
 	MPlug inMeshPlug(thisMObject(),inMesh);
 	MPlug inMeshObjPlug=inMeshPlug.elementByLogicalIndex(plugIdx);
 	MObject inMeshObj=inMeshObjPlug.asMObject();
 	//MObject inMeshObj=inMeshHandle.inputValue().asMesh();
-	//cout<<"is jumpdd"<<endl;
+	MFnMesh fnInMeshTmp(inMeshObj);
+	if(fnInMeshTmp.numPolygons()<=0)
+		return MS::kSuccess;
+	cout<<"is jumpdd"<<endl;
 
 	MFnMeshData dataCreator;
 	MObject newOutputData = dataCreator.create();
@@ -65,7 +68,7 @@ MStatus cacheImport::compute( const MPlug& plug, MDataBlock& data )
 	
 	MPointArray allPoints;
 	int temp=getPointsFromCache(data.inputValue(file).asString(),t,objTrans,allPoints);
-	//cout<<"ppp"<<temp<<endl;
+	cout<<"ppp"<<temp<<endl;
 	if(temp)
 		fnoutMesh.setPoints(allPoints);
 	//else 
@@ -82,7 +85,7 @@ MStatus cacheImport::compute( const MPlug& plug, MDataBlock& data )
 	data.outputValue(plug).set(newOutputData);
 	
 	data.setClean(plug);
-	//cout<<"ppp"<<temp<<endl;
+	cout<<"ppp"<<temp<<endl;
 	return MS::kSuccess;
 
 }
@@ -94,7 +97,7 @@ bool cacheImport::getPointsFromCache(MString cacheFileName,int timeValue,MString
 		return false;
 	struct_basicObjInfo objIndex;
 	int index=indexInCacheFile(fin,objIndex,objName);
-	//cout<<"idx"<<index<<endl;
+	cout<<"idx"<<index<<endl;
 	if(index==-1)
 	{
 		fin.close();
@@ -107,7 +110,7 @@ bool cacheImport::getPointsFromCache(MString cacheFileName,int timeValue,MString
 	//	cout<<"here"<<endl;
 		return false;
 	}
-	//cout<<objIndex.startFrame<<" "<<objIndex.endFrame<<" "<<objIndex.vertexNum<<" "<<timeValue<<endl;
+	cout<<objIndex.startFrame<<" "<<objIndex.endFrame<<" "<<objIndex.vertexNum<<" "<<timeValue<<endl;
 	fin.seekp(objIndex.cacheBegin);
 	vector<streampos> allPosIndex(objIndex.endFrame-objIndex.startFrame+1);
 	fin.read((char*)&allPosIndex[0],sizeof(streampos)*(objIndex.endFrame-objIndex.startFrame+1));
@@ -138,10 +141,28 @@ MStatus cacheImport::connectionMade( const MPlug& plug, const MPlug& otherPlug, 
 		MFnDagNode transformFn(dagNodeFn.parent(0));
 		MStringArray tempArray;
 		transformFn.name().split(':',tempArray);
+		if(tempArray.length()<2)
+			return MS::kSuccess;
 		MString transName=tempArray[tempArray.length()-1].asChar();
 		allObjTrans.insert(make_pair(plug.logicalIndex(),transName));
 		return MS::kSuccess;
 	}
+//  	if(plug.array()==MPlug(thisMObject(),outMesh))
+//  	{
+//  		if(!otherPlug.node().hasFn(MFn::kMesh))
+//  			return MS::kSuccess;
+//  		MFnDagNode dagNodeFn(otherPlug.node());
+//  		if(dagNodeFn.parentCount()<=0)
+//  			return MS::kSuccess;
+//  		MFnDagNode transformFn(dagNodeFn.parent(0));
+//  		MStringArray tempArray;
+//  		transformFn.name().split(':',tempArray);
+//  		if(tempArray.length()<2)
+//  			return MS::kSuccess;
+//  		MString transName=tempArray[tempArray.length()-1].asChar();
+//  		allObjTrans.insert(make_pair(plug.logicalIndex(),transName));
+//  		return MS::kSuccess;
+//  	}
 	return MPxNode::connectionMade(plug,otherPlug,asSrc);
 }
 

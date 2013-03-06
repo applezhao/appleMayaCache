@@ -99,7 +99,10 @@ MStatus vixo_visImport::compute( const MPlug& plug, MDataBlock& data )
 	int fileObjIndex=-1;
 	for(int i=0;i<objNum;i++)
 	{
-		if(MString(objIndexes[i].objName)==objNameValue)
+		MStringArray tempArr;
+		MString tempStr(objIndexes[i].objName);
+		tempStr.split(':',tempArr);
+		if(tempArr[tempArr.length()-1]==objNameValue)
 		{
 			fileObjIndex=i;
 			break;
@@ -148,11 +151,13 @@ MStatus vixo_visImport::connectionMade(const MPlug& plug,const MPlug& otherPlug,
 		MPlugArray arr;
 		plug.connectedTo(arr,false,true);
 		MFnDagNode dagNodeFn(arr[0].node());
-		//if(dagNodeFn.parentCount()<=0)
-		//	return MS::kSuccess;
+		if(dagNodeFn.parentCount()<=0)
+			return MS::kSuccess;
 		//MFnDagNode transformFn(dagNodeFn.parent(0));
 		MStringArray tempArray;
 		dagNodeFn.name().split(':',tempArray);
+		if(tempArray.length()<2)
+			return MS::kSuccess;
 		//cout<<tempArray[tempArray.length()-1].asChar()<<endl;
 		mapObjName.insert(pair<int,string>(plug.logicalIndex(),tempArray[tempArray.length()-1].asChar()));
 		return MS::kSuccess;

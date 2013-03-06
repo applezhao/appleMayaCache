@@ -136,7 +136,10 @@ private:
 		{
 			//cout<<"fff"<<i<<endl;
 			fin.read((char*)&objIndexTemp,sizeof(struct_basicObjInfo));
-			if(MString(objIndexTemp.objName)==objName)
+			MStringArray arrTemp;
+			MString tempStr(objIndexTemp.objName);
+			tempStr.split(':',arrTemp);
+			if(arrTemp[arrTemp.length()-1]==objName)
 			{
 				strcpy(objIndex.objName,objIndexTemp.objName);
 				objIndex.vertexNum=objIndexTemp.vertexNum;

@@ -790,8 +790,10 @@ void vixo_cacheExport::prepareCacheData(int start,int end,char time[20],struct_p
 
 		slist.clear();
 		MGlobal::getSelectionListByName(prepareDataEle.nameSpace+":"+cacheDataEle.cacheAdd[i],slist);
+		cout<<"select:"<<prepareDataEle.nameSpace.asChar()<<":"<<cacheDataEle.cacheAdd[i].asChar()<<endl;
 		slist.getDagPath(0,cacheDataEle.cacheAddDags[i]);
 		MItMeshVertex vtxIter(cacheDataEle.cacheAddDags[i]);
+		cout<<vtxIter.count()<<endl;
 		cacheDataEle.cacheAddBasic[i].vertexNum=vtxIter.count();
 		cacheDataEle.cacheAddBasic[i].startFrame=start;
 		cacheDataEle.cacheAddBasic[i].endFrame=end;
@@ -1155,13 +1157,13 @@ void vixo_cacheExport::splitName(const MString& node,MString & nameSpace,MString
 	tempSplit[tempSplit.length()-1].split(':',temp4prefix);
 	nameSpace=temp4prefix[0];
 	objName=MString("");
-	for(int i=0;i<temp4prefix.length()-1;i++)
+	for(int i=1;i<temp4prefix.length()-1;i++)
 	{
 		objName=objName+temp4prefix[i]+MString(":");
 	}
 	objName=objName+temp4prefix[temp4prefix.length()-1];
 	cout<<"mmmm:"<<tempSplit[tempSplit.length()-1].asChar()<<endl;
-	cout<<"aaaa:"<<temp4prefix.length()<<objName.asChar()<<endl;
+	//cout<<"aaaa:"<<temp4prefix.length()<<objName.asChar()<<endl;
 // 	temp4prefix[1]+":"+temp4prefix[2]
 // 
 // 	objName=tempSplit[tempSplit.length()-1];
