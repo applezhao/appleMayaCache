@@ -127,7 +127,7 @@ private:
 		return false;
 	}
 	bool getPointsFromCache(MString cacheFileName,int timeValue,MString objName,MPointArray& allPoints);
-	int indexInCacheFile(fstream& fin,struct_basicObjInfo& objIndex,MString objName)
+	int indexInCacheFile(ifstream& fin,struct_basicObjInfo& objIndex,MString objName)
 	{
 		int objNum,res=-1;
 		fin.read((char*)&objNum,sizeof(int));

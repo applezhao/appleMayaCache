@@ -82,7 +82,7 @@ MStatus vixo_visImport::compute( const MPlug& plug, MDataBlock& data )
 
 	MString objNameValue(mapObjName.find(objIdx)->second.c_str());
 	bool res=true;
-	fstream fin(filename.asChar(),ios_base::in|ios_base::binary);
+	ifstream fin(filename.asChar(),ios_base::in|ios_base::binary);
 	if(fin.fail())
 	{
 		MDataHandle eleHandle=data.outputValue(plug);

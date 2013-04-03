@@ -29,10 +29,12 @@ MStatus cacheImport::compute( const MPlug& plug, MDataBlock& data )
 	MStatus stat=MS::kSuccess;
 	if(plug.array()!=outMesh)
 		return MS::kSuccess;
-// 	MPlugArray destPlug;
-// 	plug.connectedTo(destPlug,false,true);
-// 	if(destPlug.length()<=0)
-// 		return MS::kSuccess;
+ 	MPlugArray destPlug;
+ 	plug.connectedTo(destPlug,false,true);
+ 	if(destPlug.length()<=0)
+ 		return MS::kSuccess;
+	if(!destPlug[0].node().hasFn(MFn::kMesh))
+		return MS::kSuccess;
 	
 	//cout<<plug.info().asChar()<<endl;
 	int plugIdx=plug.logicalIndex();
@@ -47,25 +49,29 @@ MStatus cacheImport::compute( const MPlug& plug, MDataBlock& data )
 
 	MArrayDataHandle inMeshHandle=data.inputArrayValue(inMesh);
 	cout<<"is jump"<<endl;
-	if(!inMeshHandle.jumpToElement(plugIdx))
-		return MS::kSuccess;
+	//if(!inMeshHandle.jumpToElement(plugIdx))
+	//	return MS::kSuccess;
 	MPlug inMeshPlug(thisMObject(),inMesh);
-	MPlug inMeshObjPlug=inMeshPlug.elementByLogicalIndex(plugIdx);
+	MPlug inMeshObjPlug=inMeshPlug.elementByLogicalIndex(plugIdx,&stat);
+	if(stat!=MS::kSuccess)
+	{
+		cout<<"error:"<<stat.errorString().asChar()<<endl;
+		return MS::kSuccess;
+	}
+		
 	MObject inMeshObj=inMeshObjPlug.asMObject();
 	//MObject inMeshObj=inMeshHandle.inputValue().asMesh();
 	MFnMesh fnInMeshTmp(inMeshObj);
-	if(fnInMeshTmp.numPolygons()<=0)
-		return MS::kSuccess;
 	cout<<"is jumpdd"<<endl;
 
 	MFnMeshData dataCreator;
 	MObject newOutputData = dataCreator.create();
-
+	cout<<"000"<<endl;
 	MFnMesh fnMesh;
 	fnMesh.copy(inMeshObj,newOutputData);
-
+	cout<<"111"<<endl;
 	MFnMesh fnoutMesh(newOutputData);
-	
+	cout<<"222"<<endl;
 	MPointArray allPoints;
 	int temp=getPointsFromCache(data.inputValue(file).asString(),t,objTrans,allPoints);
 	cout<<"ppp"<<temp<<endl;
@@ -92,9 +98,10 @@ MStatus cacheImport::compute( const MPlug& plug, MDataBlock& data )
 bool cacheImport::getPointsFromCache(MString cacheFileName,int timeValue,MString objName,MPointArray& allPoints)
 {
 //que shao xin xi
-	fstream fin(cacheFileName.asChar(),ios_base::in|ios_base::binary);
+	ifstream fin(cacheFileName.asChar(),ios_base::in|ios_base::binary);
 	if(fin.fail())
 		return false;
+	cout<<"333"<<endl;
 	struct_basicObjInfo objIndex;
 	int index=indexInCacheFile(fin,objIndex,objName);
 	cout<<"idx"<<index<<endl;
@@ -111,10 +118,10 @@ bool cacheImport::getPointsFromCache(MString cacheFileName,int timeValue,MString
 		return false;
 	}
 	cout<<objIndex.startFrame<<" "<<objIndex.endFrame<<" "<<objIndex.vertexNum<<" "<<timeValue<<endl;
-	fin.seekp(objIndex.cacheBegin);
+	fin.seekg(objIndex.cacheBegin);
 	vector<streampos> allPosIndex(objIndex.endFrame-objIndex.startFrame+1);
 	fin.read((char*)&allPosIndex[0],sizeof(streampos)*(objIndex.endFrame-objIndex.startFrame+1));
-	fin.seekp(objIndex.cacheBegin.operator+(allPosIndex[timeValue-objIndex.startFrame]));
+	fin.seekg(objIndex.cacheBegin.operator+(allPosIndex[timeValue-objIndex.startFrame]));
 	vector<struct_position> framePos(objIndex.vertexNum);
 	fin.read((char*)&framePos[0],sizeof(struct_position)*objIndex.vertexNum);
 	allPoints.setLength(objIndex.vertexNum);
