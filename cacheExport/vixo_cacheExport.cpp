@@ -42,6 +42,8 @@ MStatus vixo_cacheExport::doIt(const MArgList& args)
 	bool isCloth;
 	int startFrame,endFrame,MAXNUM;
 
+	MStringArray eyes;
+
 	unsigned index;
 
 	index=args.flagIndex("dp","dirpath");
@@ -107,6 +109,13 @@ MStatus vixo_cacheExport::doIt(const MArgList& args)
 		nodes=args.asStringArray(i);
 	}
 
+	index=args.flagIndex("eye","eyestrans");
+	if(MArgList::kInvalidArgIndex!=index)
+	{
+		unsigned int i=index+1;
+		eyes=args.asStringArray(i);
+	}
+
 	index=args.flagIndex("nsm","namespaceMapping");
 	if(MArgList::kInvalidArgIndex!=index)
 	{
@@ -116,10 +125,10 @@ MStatus vixo_cacheExport::doIt(const MArgList& args)
 
 	//MStringArray allNameSpace;
 	//getAllNameSpace(nodes,cacheVisDel,allNameSpace);
-	cout<<"here0000"<<endl;
+	//cout<<"here0000"<<endl;
 	vector<struct_prepareInfo> prepareData;
-	collectPrepareData(isCloth,dirPath,cacheDirName,animDirName,cacheForce,nodes,cacheVisDel,prepareData,nameSpaceMappingArr);
-	cout<<"1111"<<endl;
+	collectPrepareData(isCloth,dirPath,cacheDirName,animDirName,cacheForce,nodes,eyes,cacheVisDel,prepareData,nameSpaceMappingArr);
+	//cout<<"1111"<<endl;
 	/*
 	
 	MString nameSpace;
@@ -180,16 +189,18 @@ void vixo_cacheExport::exportCacheVis(vector<struct_prepareInfo>& prepareData,in
 	time_t t=time(0);
 	char tmp[20];
 	::strftime(tmp,sizeof(tmp),"%Y-%m-%d %X",localtime(&t));
-	cout<<"2222"<<startFrame<<" "<<endFrame<<" "<<beginIdx<<" "<<endIdx<<endl;;
+	//cout<<"2222"<<startFrame<<" "<<endFrame<<" "<<beginIdx<<" "<<endIdx<<endl;;
 	for(int i=beginIdx;i<endIdx;i++)
 	{
-		cout<<"3333"<<endl;
+		//cout<<"3333"<<endl;
 		diffCacheNewOld(prepareData[i],cacheExportData[i-beginIdx]);
-		cout<<"3333"<<endl;
+		//cout<<"3333"<<endl;
 		prepareCacheData(startFrame,endFrame,tmp,prepareData[i],cacheExportData[i-beginIdx]);
-		cout<<"3333"<<endl;
+		//cout<<"3333"<<endl;
 		prepareVisData(startFrame,endFrame,tmp,prepareData[i],visExportData[i-beginIdx]);
-		cout<<"3333"<<endl;
+		//cout<<"3333"<<endl;
+		prepareEyedata(startFrame,endFrame,prepareData[i]);
+		//cout<<"3333"<<endl;
 	}
 	MGlobal::displayInfo("=========begin export===========");
 	for(int i=beginIdx;i<endIdx;i++)
@@ -207,7 +218,67 @@ void vixo_cacheExport::exportCacheVis(vector<struct_prepareInfo>& prepareData,in
 		cout<<"eeee1"<<endl;
 		postVisExport(startFrame,endFrame,tmp,prepareData[i],visExportData[i-beginIdx]);
 		cout<<"eeee2"<<endl;
+		postEyeExport(startFrame,endFrame,tmp,prepareData[i]);
+		cout<<"eeee3"<<endl;
 	}
+}
+
+void vixo_cacheExport::postEyeExport(int start,int end,char time[20],struct_prepareInfo& prepareDataEle)
+{
+	MString eyeIndexFileName=prepareDataEle.eyeFileNamePre+".ieye";
+	MString eyeFileName=prepareDataEle.eyeFileNamePre+".deye";
+	if(prepareDataEle.eyes.length()<=0)
+	{
+		ofstream foutindex(eyeIndexFileName.asChar(),ios_base::out|ios_base::trunc|ios_base::binary);
+		foutindex.flush();
+		foutindex.close();
+		ofstream foutvis(eyeFileName.asChar(),ios_base::out|ios_base::trunc|ios_base::binary);
+		foutvis.flush();
+		foutvis.close();
+		return;
+	}
+
+	prepareDataEle.eyesIdx.resize(prepareDataEle.eyes.length());
+	prepareDataEle.eyeInfos.resize(prepareDataEle.eyes.length());
+	streampos beginPos=sizeof(int)+sizeof(struct_visBasicInfo)*prepareDataEle.eyes.length();
+	for(int i=0;i<prepareDataEle.eyes.length();i++)
+	{
+		strcpy(prepareDataEle.eyesIdx[i].objName,prepareDataEle.eyes[i].asChar());
+		strcpy(prepareDataEle.eyesIdx[i].lastestUpdateTime,time);
+		strcpy(prepareDataEle.eyeInfos[i].objName,prepareDataEle.eyes[i].asChar());
+		prepareDataEle.eyeInfos[i].startFrame=start;
+		prepareDataEle.eyeInfos[i].endFrame=end;
+		prepareDataEle.eyeInfos[i].visBegin=beginPos;
+		beginPos=beginPos.operator +(sizeof(double)*3*(end-start+1));
+	}
+
+
+	ofstream foutIndex(eyeIndexFileName.asChar(),ios_base::trunc|ios_base::binary);
+
+	vector<int> data(3);
+	data[0]=start;
+	data[1]=end;
+	data[2]=prepareDataEle.eyes.length();
+	//cout<<data[0]<<" "<<data[1]<<" "<<data[2]<<endl;
+	//cout<<"111"<<endl;
+	foutIndex.write((char*)&data[0],sizeof(int)*3);
+	//cout<<"111"<<endl;
+	foutIndex.write((char*)&prepareDataEle.eyesIdx[0],sizeof(struct_indexInfo)*prepareDataEle.eyes.length());
+	//cout<<"111"<<endl;
+	foutIndex.flush();
+	foutIndex.close();
+
+	ofstream foutEye(eyeFileName.asChar(),ios_base::trunc|ios_base::binary);
+	int num=prepareDataEle.eyes.length();
+	foutEye.write((char*)&num,sizeof(int));
+	foutEye.write((char*)&prepareDataEle.eyeInfos[0],sizeof(struct_visBasicInfo)*num);
+	for(int i=0;i<prepareDataEle.eyes.length();i++)
+	{
+		foutEye.write((char*)&prepareDataEle.eyeData[i][0],sizeof(double)*(end-start+1)*3);
+	}
+
+	foutEye.flush();
+	foutEye.close();
 }
 
 void vixo_cacheExport::postCacheExport(int start,int end,char time[20],struct_prepareInfo& prepareDataEle,struct_cacheExportInfo& cacheDataEle,MString nmsp)
@@ -304,39 +375,51 @@ void vixo_cacheExport::postCacheExport(int start,int end,char time[20],struct_pr
 	MString cacheIndexFileName=prepareDataEle.cacheFileNamePre+".idat";
 	MString cacheFileName=prepareDataEle.cacheFileNamePre+".ddat";
 	cout<<cacheIndexFileName.asChar()<<endl;
-	int data[3];
-	data[0]=start;
-	data[1]=end;
-	data[2]=cacheDataEle.cacheAdd.length()+cacheDataEle.cacheKeep.length()+cacheDataEle.cacheUpdate.length();
-	if(data[2]==0)
+	
+	if(cacheDataEle.cacheAdd.length()+cacheDataEle.cacheKeep.length()+cacheDataEle.cacheUpdate.length()<=0)
 	{
 
- 		fstream foutIndex(cacheIndexFileName.asChar(),ios_base::out|ios_base::trunc|ios_base::binary);
+ 		ofstream foutIndex(cacheIndexFileName.asChar(),ios_base::trunc|ios_base::binary);
  		foutIndex.flush();
  		foutIndex.close();
- 		fstream foutCache(cacheFileName.asChar(),ios_base::out|ios_base::trunc|ios_base::binary);
+ 		ofstream foutCache(cacheFileName.asChar(),ios_base::trunc|ios_base::binary);
  		foutCache.flush();
  		foutCache.close();
 
 	}
 	else
 	{
-		fstream foutIndex(cacheIndexFileName.asChar(),ios_base::out|ios_base::trunc|ios_base::binary);
-
+		int data[3];
+		data[0]=start;
+		data[1]=end;
+		data[2]=cacheDataEle.cacheAdd.length()+cacheDataEle.cacheKeep.length()+cacheDataEle.cacheUpdate.length();
+		//cout<<"111"<<endl;
+		ofstream foutIndex(cacheIndexFileName.asChar(),ios_base::trunc|ios_base::binary);
+		//cout<<"111"<<endl;
 		foutIndex.write((char*)&data[0],sizeof(int)*3);
-		foutIndex.write((char*)&cacheDataEle.cacheKeepTime[0],sizeof(struct_indexInfo)*cacheDataEle.cacheKeep.length());
-		foutIndex.write((char*)&cacheDataEle.cacheAddTime[0],sizeof(struct_indexInfo)*cacheDataEle.cacheAdd.length());
-		foutIndex.write((char*)&cacheDataEle.cacheUpdateTime[0],sizeof(struct_indexInfo)*cacheDataEle.cacheUpdate.length());
+		//cout<<"111"<<endl;
+		if(cacheDataEle.cacheKeep.length()>0)
+			foutIndex.write((char*)&cacheDataEle.cacheKeepTime[0],sizeof(struct_indexInfo)*cacheDataEle.cacheKeep.length());
+		//cout<<"111"<<endl;
+		if(cacheDataEle.cacheAdd.length()>0)
+			foutIndex.write((char*)&cacheDataEle.cacheAddTime[0],sizeof(struct_indexInfo)*cacheDataEle.cacheAdd.length());
+		//cout<<"111"<<endl;
+		if(cacheDataEle.cacheUpdate.length()>0)
+			foutIndex.write((char*)&cacheDataEle.cacheUpdateTime[0],sizeof(struct_indexInfo)*cacheDataEle.cacheUpdate.length());
+		//cout<<"111"<<endl;
 		foutIndex.flush();
 		foutIndex.close();
 
-		fstream foutCache(cacheFileName.asChar(),ios_base::out|ios_base::trunc|ios_base::binary);
+		ofstream foutCache(cacheFileName.asChar(),ios_base::trunc|ios_base::binary);
 		foutCache.write((char*)&data[2],sizeof(int));
-		foutCache.write((char*)&cacheDataEle.cacheKeepBasic[0],sizeof(struct_basicObjInfo)*cacheDataEle.cacheKeep.length());
+		if(cacheDataEle.cacheKeep.length()>0)
+			foutCache.write((char*)&cacheDataEle.cacheKeepBasic[0],sizeof(struct_basicObjInfo)*cacheDataEle.cacheKeep.length());
 		//cout<<"test0:"<<cacheKeep.length()<<endl;
-		foutCache.write((char*)&cacheDataEle.cacheAddBasic[0],sizeof(struct_basicObjInfo)*cacheDataEle.cacheAdd.length());
+		if(cacheDataEle.cacheAdd.length()>0)
+			foutCache.write((char*)&cacheDataEle.cacheAddBasic[0],sizeof(struct_basicObjInfo)*cacheDataEle.cacheAdd.length());
 		//cout<<"test1:"<<cacheAdd.length()<<endl;
-		foutCache.write((char*)&cacheDataEle.cacheUpdateNewBasic[0],sizeof(struct_basicObjInfo)*cacheDataEle.cacheUpdate.length());
+		if(cacheDataEle.cacheUpdate.length()>0)
+			foutCache.write((char*)&cacheDataEle.cacheUpdateNewBasic[0],sizeof(struct_basicObjInfo)*cacheDataEle.cacheUpdate.length());
 		//cout<<"test1:"<<cacheUpdate.length()<<endl;
 		//MString test("apple");
 		//foutCache.write("apple",sizeof(char)*5);
@@ -401,7 +484,7 @@ void vixo_cacheExport::postCacheExport(int start,int end,char time[20],struct_pr
 
 	//导出更新日志
 	MString cacheLogFileName=prepareDataEle.cacheFileNamePre+".log";
-	fstream foutLog(cacheLogFileName.asChar(),ios_base::out|ios_base::trunc);
+	ofstream foutLog(cacheLogFileName.asChar(),ios_base::trunc);
 	for(int i=0;i<cacheDataEle.cacheAdd.length();i++)
 	{
 		foutLog<<"add:"<<cacheDataEle.cacheAdd[i].asChar()<<endl;
@@ -534,17 +617,17 @@ void vixo_cacheExport::postVisExport(int start,int end,char time[20],struct_prep
 	if(visDataEle.visKeep.length()+visDataEle.visExport.length()<=0)
 	{
 
-		fstream foutindex(visIndexFileName.asChar(),ios_base::out|ios_base::trunc|ios_base::binary);
+		ofstream foutindex(visIndexFileName.asChar(),ios_base::trunc|ios_base::binary);
 		foutindex.flush();
 		foutindex.close();
-		fstream foutvis(visFileName.asChar(),ios_base::out|ios_base::trunc|ios_base::binary);
+		ofstream foutvis(visFileName.asChar(),ios_base::trunc|ios_base::binary);
 		foutvis.flush();
 		foutvis.close();
 
 	}
 	else
 	{
-		fstream foutIndex(visIndexFileName.asChar(),ios_base::out|ios_base::trunc|ios_base::binary);
+		ofstream foutIndex(visIndexFileName.asChar(),ios_base::trunc|ios_base::binary);
 		int data[3];
 		data[0]=start;
 		data[1]=end;
@@ -557,7 +640,7 @@ void vixo_cacheExport::postVisExport(int start,int end,char time[20],struct_prep
 		foutIndex.flush();
 		foutIndex.close();
 
-		fstream foutVis(visFileName.asChar(),ios_base::out|ios_base::trunc|ios_base::binary);
+		ofstream foutVis(visFileName.asChar(),ios_base::trunc|ios_base::binary);
 		foutVis.write((char*)&data[2],sizeof(int));
 		if(visDataEle.visKeep.length()>0)
 			foutVis.write((char*)&visDataEle.visKeepBasic[0],sizeof(struct_visBasicInfo)*visDataEle.visKeep.length());
@@ -572,7 +655,7 @@ void vixo_cacheExport::postVisExport(int start,int end,char time[20],struct_prep
 
 	//导出更新日志
 	MString visLogFileName=prepareDataEle.visFileNamePre+".log";
-	fstream foutLog(visLogFileName.asChar(),ios_base::out|ios_base::trunc);
+	ofstream foutLog(visLogFileName.asChar(),ios_base::trunc);
 	for(int i=0;i<visDataEle.visAdd.length();i++)
 		foutLog<<"add:"<<visDataEle.visAdd[i].asChar()<<endl;
 	for(int i=0;i<visDataEle.visDel.length();i++)
@@ -600,6 +683,14 @@ void vixo_cacheExport::exportPlayBlast(vector<struct_prepareInfo>& prepareData,i
 		//timer.beginTimer();
 		for(int objIdx=0;objIdx<endIdx-beginIdx;objIdx++)
 		{
+			for(int i=0;i<prepareData[objIdx].eyes.length();i++)
+			{
+				MFnTransform fntrans(prepareData[objIdx].eyesDag[i]);
+				MVector res=fntrans.translation(MSpace::kWorld);
+				prepareData[objIdx].eyeData[i][(time-start)*3+0]=res[0];
+				prepareData[objIdx].eyeData[i][(time-start)*3+1]=res[1];
+				prepareData[objIdx].eyeData[i][(time-start)*3+2]=res[2];
+			}
 			for(int i=0;i<cacheData[objIdx].cacheAdd.length();i++)
 			{
 				MFnMesh fnMesh(cacheData[objIdx].cacheAddDags[i]);
@@ -739,7 +830,7 @@ void vixo_cacheExport::prepareCacheData(int start,int end,char time[20],struct_p
 	cacheDataEle.cacheKeepBasic.resize(cacheDataEle.cacheKeep.length());
 	cacheDataEle.cacheKeepData.resize(cacheDataEle.cacheKeep.length());
 	MString cacheFileName=prepareDataEle.cacheFileNamePre+".ddat";
-	fstream fin(cacheFileName.asChar(),ios_base::in|ios_base::binary);
+	ifstream fin(cacheFileName.asChar(),ios_base::in|ios_base::binary);
 	for(int i=0;i<cacheDataEle.cacheKeep.length();i++)
 	{
 		//cout<<"keep:"<<cacheDataEle.cacheKeep[i].asChar()<<endl;
@@ -874,11 +965,30 @@ void vixo_cacheExport::prepareCacheData(int start,int end,char time[20],struct_p
 	fin.close();
 }
 
+
+void vixo_cacheExport::prepareEyedata(int start,int end,struct_prepareInfo& prepareDataEle)
+{
+	prepareDataEle.eyesDag.clear();
+	prepareDataEle.eyesDag.setLength(prepareDataEle.eyes.length());
+	//prepareDataEle.eyesDag.resize(prepareDataEle.eyes.length(),false);
+	prepareDataEle.eyeData.resize(prepareDataEle.eyes.length());
+	MSelectionList slist;
+	
+	for(int i=0;i<prepareDataEle.eyes.length();i++){
+		slist.clear();
+		MGlobal::getSelectionListByName(prepareDataEle.nameSpace+":"+prepareDataEle.eyes[i],slist);
+		cout<<"selecteye:"<<prepareDataEle.nameSpace.asChar()<<":"<<prepareDataEle.eyes[i].asChar()<<endl;
+		slist.getDagPath(0,prepareDataEle.eyesDag[i]);
+		prepareDataEle.eyeData[i].resize(3*(end-start+1));
+	}
+}
+
+
 void vixo_cacheExport::prepareVisData(int start,int end,char time[20],struct_prepareInfo& prepareDataEle,struct_visExportInfo& visDataEle)
 {
 	//读取旧数据
 	MString visIndexFileName=prepareDataEle.visFileNamePre+".ivis";
-	fstream fin(visIndexFileName.asChar(),ios_base::in|ios_base::binary);
+	ifstream fin(visIndexFileName.asChar(),ios_base::in|ios_base::binary);
 	bool eofFlag=false;
 	ifstream visFinTest(visIndexFileName.asChar(),ios_base::in|ios_base::binary);
 	if(visFinTest)
@@ -956,7 +1066,7 @@ void vixo_cacheExport::prepareVisData(int start,int end,char time[20],struct_pre
 	visDataEle.flag_write.resize(prepareDataEle.objExport.length(),false);
 }
 
-void vixo_cacheExport::collectPrepareData(bool isCloth,MString dirPath,MString cacheDirName,MString animDirName,bool cacheForce,const MStringArray& allNodes,const MStringArray& objDel,vector<struct_prepareInfo>& prepareData,const MStringArray & nameSpaceMappingArr)
+void vixo_cacheExport::collectPrepareData(bool isCloth,MString dirPath,MString cacheDirName,MString animDirName,bool cacheForce,const MStringArray& allNodes,const MStringArray& eyes,const MStringArray& objDel,vector<struct_prepareInfo>& prepareData,const MStringArray & nameSpaceMappingArr)
 {
 	MStringArray allNameSpace;
 	getAllNameSpace(allNodes,objDel,allNameSpace);
@@ -973,6 +1083,14 @@ void vixo_cacheExport::collectPrepareData(bool isCloth,MString dirPath,MString c
 		//cout<<nameSpace.asChar()<<" "<<objName.asChar()<<endl;
 		int idx=inSetIndex(nameSpace,allNameSpace);
 		prepareData[idx].objExport.append(objName);
+	}
+	for(int i=0;i<eyes.length();i++)
+	{
+		//cout<<allNodes[i].asChar()<<endl;
+		splitName(eyes[i],nameSpace,objName);
+		//cout<<nameSpace.asChar()<<" "<<objName.asChar()<<endl;
+		int idx=inSetIndex(nameSpace,allNameSpace);
+		prepareData[idx].eyes.append(objName);
 	}
 	for(int i=0;i<objDel.length();i++)
 	{
@@ -995,6 +1113,7 @@ void vixo_cacheExport::collectPrepareData(bool isCloth,MString dirPath,MString c
 			prepareData[i].cacheFileNamePre=dirPath+"/"+prepareData[i].ligNameSpace+"/"+"cache";
 			prepareData[i].visFileNamePre=dirPath+"/"+prepareData[i].ligNameSpace+"/"+"vis";
 			prepareData[i].animFileNamePre=dirPath+"/"+prepareData[i].ligNameSpace+"/"+"anim";
+			prepareData[i].eyeFileNamePre=dirPath+"/"+prepareData[i].ligNameSpace+"/"+"eye";
 		}
 		cout<<prepareData[i].cacheFileNamePre.asChar()<<endl;
 		
@@ -1036,6 +1155,8 @@ void vixo_cacheExport::diff_cacheAnimNothing(bool cacheForce,struct_prepareInfo&
 	prepareDataEle.nothingToDo.clear();
 	prepareDataEle.cacheNothingToDo.clear();
 	prepareDataEle.animNothingToDo.clear();
+	//prepareDataEle.eyes.clear();
+	//prepareDataEle.eyesfull.clear();
 
 	if(cacheForce==true)
 	{
@@ -1247,16 +1368,16 @@ void vixo_cacheExport::anim_export(MString nameSpace,MString animFileNamePre,cha
 
 	if(animKeep.length()+animAdd.length()+animUpdate.length()<=0)
 	{
-		fstream foutIndex(animIndexFileName.asChar(),ios_base::out|ios_base::trunc|ios_base::binary);
+		ofstream foutIndex(animIndexFileName.asChar(),ios_base::trunc|ios_base::binary);
 		foutIndex.flush();
 		foutIndex.close();
-		fstream foutAnim(animFileName.asChar(),ios_base::out|ios_base::trunc|ios_base::binary);
+		ofstream foutAnim(animFileName.asChar(),ios_base::trunc|ios_base::binary);
 		foutAnim.flush();
 		foutAnim.close();
 	}
 	else
 	{
-		fstream foutIndex(animIndexFileName.asChar(),ios_base::out|ios_base::trunc|ios_base::binary);
+		ofstream foutIndex(animIndexFileName.asChar(),ios_base::trunc|ios_base::binary);
 		int data[3];
 		data[0]=start;
 		data[1]=end;
@@ -1280,7 +1401,7 @@ void vixo_cacheExport::anim_export(MString nameSpace,MString animFileNamePre,cha
 		foutIndex.flush();
 		foutIndex.close();
 
-		fstream foutAnim(animFileName.asChar(),ios_base::out|ios_base::trunc|ios_base::binary);
+		ofstream foutAnim(animFileName.asChar(),ios_base::trunc|ios_base::binary);
 		for(int i=0;i<animKeep.length();i++)
 		{
 			foutAnim.write((char*)&animKeepData[i].data[0],sizeof(double)*12);
@@ -1299,7 +1420,7 @@ void vixo_cacheExport::anim_export(MString nameSpace,MString animFileNamePre,cha
 
 
 	//anim log
-	fstream foutLog(animLogFileName.asChar(),ios_base::out|ios_base::trunc);
+	ofstream foutLog(animLogFileName.asChar(),ios_base::trunc);
 	for(int i=0;i<animAdd.length();i++)
 		foutLog<<"add:"<<animAdd[i].asChar()<<endl;
 	for(int i=0;i<animUpdate.length();i++)
@@ -1312,7 +1433,7 @@ void vixo_cacheExport::anim_export(MString nameSpace,MString animFileNamePre,cha
 
 void vixo_cacheExport::getAnimOldData(MString animFileName,MString animIndexFileName,MStringArray& animInFile,vector<structAnimInfo>& animInFileData)
 {
-	fstream fin(animIndexFileName.asChar(),ios_base::in|ios_base::binary);
+	ifstream fin(animIndexFileName.asChar(),ios_base::in|ios_base::binary);
 	bool eofFlag=false;
 	ifstream animFinTest(animIndexFileName.asChar(),ios_base::in|ios_base::binary);
 	if(animFinTest)
@@ -1342,7 +1463,7 @@ void vixo_cacheExport::getAnimOldData(MString animFileName,MString animIndexFile
 		}
 		fin.close();
 
-		fstream finData(animFileName.asChar(),ios_base::in|ios_base::binary);
+		ifstream finData(animFileName.asChar(),ios_base::in|ios_base::binary);
 		for(int i=0;i<objNum[2];i++)
 		{
 			finData.read((char*)&animInFileData[i].data[0],sizeof(double)*12);
@@ -1410,7 +1531,7 @@ int vixo_cacheExport::inSetIndex(MString element,MStringArray& set)
 	return -1;
 }
 
-double vixo_cacheExport::asDouble(fstream & fin)
+double vixo_cacheExport::asDouble(ifstream & fin)
 {
 	advance(fin);
 	double value;
@@ -1418,7 +1539,7 @@ double vixo_cacheExport::asDouble(fstream & fin)
 	return value;
 }
 
-void vixo_cacheExport::advance(fstream & fin)
+void vixo_cacheExport::advance(ifstream & fin)
 {
 	while(fin)
 	{

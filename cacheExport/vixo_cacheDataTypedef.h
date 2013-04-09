@@ -288,6 +288,13 @@ struct struct_prepareInfo
 		cacheNothingToDoFull,
 		animNothingToDoFull,
 		objDelFull;
+
+	MStringArray eyes,eyesfull;
+	MString eyeFileNamePre;
+	vector<vector<double> > eyeData;
+	MDagPathArray eyesDag;
+	vector<struct_indexInfo> eyesIdx;
+	vector<struct_visBasicInfo> eyeInfos;
 };
 
 struct structAnimInfo

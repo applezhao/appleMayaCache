@@ -28,8 +28,8 @@ private:
 	void getAnimOldData(MString animFileName,MString animIndexFileName,MStringArray& animInFile,vector<structAnimInfo>& animInFileData);
 
 	bool inSet(MString element,MStringArray& set);
-	double asDouble(fstream & fin);
-	void advance(fstream & fin);
+	double asDouble(ifstream & fin);
+	void advance(ifstream & fin);
 
 	void orSet(MStringArray& seta,MStringArray& setb,MStringArray& res);
 	void minusSet(MStringArray& seta,MStringArray& setb,MStringArray& res);
@@ -42,17 +42,19 @@ private:
 	void getAllNameSpace(const MStringArray& allNodes,const MStringArray& objDel,MStringArray& allNameSpace);
 	void getAllLigNameSpace(const MStringArray& allNameSpace,const MStringArray & nameSpaceMappingArr,MStringArray & ligNameSpace);
 	void splitName(const MString& node,MString & nameSpace,MString & objName);
-	void collectPrepareData(bool isCloth,MString dirPath,MString cacheDirName,MString animDirName,bool cacheForce,const MStringArray& allNodes,const MStringArray& objDel,vector<struct_prepareInfo>& prepareData,const MStringArray & nameSpaceMappingArr);
+	void collectPrepareData(bool isCloth,MString dirPath,MString cacheDirName,MString animDirName,bool cacheForce,const MStringArray& allNodes,const MStringArray& eyes,const MStringArray& objDel,vector<struct_prepareInfo>& prepareData,const MStringArray & nameSpaceMappingArr);
 
 	void diff_cacheAnimNothing(bool cacheForce,struct_prepareInfo& prepareDataEle);
 	void exportCacheVis(vector<struct_prepareInfo>& prepareData,int beginIdx,int endIdx,int startFrame,int endFrame);
 	void diffCacheNewOld(struct_prepareInfo& prepareDataEle,struct_cacheExportInfo& cacheDataEle);
 	void prepareCacheData(int start,int end,char time[20],struct_prepareInfo& prepareDataEle,struct_cacheExportInfo& cacheDataEle);
 	void prepareVisData(int start,int end,char time[20],struct_prepareInfo& prepareDataEle,struct_visExportInfo& visDataEle);
+	void prepareEyedata(int start,int end,struct_prepareInfo& prepareDataEle);
 
 	void exportPlayBlast(vector<struct_prepareInfo>& prepareData,int beginIdx,int endIdx,int startFrame,int endFrame,vector<struct_cacheExportInfo>& cacheData,vector<struct_visExportInfo>& visData);
 	void postCacheExport(int start,int end,char time[20],struct_prepareInfo& prepareDataEle,struct_cacheExportInfo& cacheDataEle,MString nmsp);
 	void postVisExport(int start,int end,char time[20],struct_prepareInfo& prepareDataEle,struct_visExportInfo& visDataEle);
+	void postEyeExport(int start,int end,char time[20],struct_prepareInfo& prepareDataEle);
 	//void exportVisNewData(MString nameSpace,MStringArray vises,MStringArray visNeedDel,MStringArray& visExport,MStringArray& visNoInfo,vector<bool>& visExportData,int start,int end);
 	//void getVisFileExistedDatas(MString fileName,MStringArray& visFileExist,vector<struct_tempTime>& visFileExistTime,vector<struct_visInfo>& visFileExistData);
 };

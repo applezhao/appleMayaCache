@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cacheImport", "cacheImport\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "visImport", "visImport\visImport.vcproj", "{3FC3AE37-CABE-4172-AA16-BD14414491AD}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "eyeLightImport", "eyeLightImport\eyeLightImport.vcproj", "{C315C636-C1B4-4ACB-89AE-98D35E19C6E1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -79,6 +81,21 @@ Global
 		{3FC3AE37-CABE-4172-AA16-BD14414491AD}.releaseMaya2013|Win32.Build.0 = releaseMaya2013|Win32
 		{3FC3AE37-CABE-4172-AA16-BD14414491AD}.releaseMaya2013|x64.ActiveCfg = releaseMaya2013|x64
 		{3FC3AE37-CABE-4172-AA16-BD14414491AD}.releaseMaya2013|x64.Build.0 = releaseMaya2013|x64
+		{C315C636-C1B4-4ACB-89AE-98D35E19C6E1}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C315C636-C1B4-4ACB-89AE-98D35E19C6E1}.Debug|Win32.Build.0 = Debug|Win32
+		{C315C636-C1B4-4ACB-89AE-98D35E19C6E1}.Debug|x64.ActiveCfg = Debug|Win32
+		{C315C636-C1B4-4ACB-89AE-98D35E19C6E1}.Release|Win32.ActiveCfg = Release|Win32
+		{C315C636-C1B4-4ACB-89AE-98D35E19C6E1}.Release|Win32.Build.0 = Release|Win32
+		{C315C636-C1B4-4ACB-89AE-98D35E19C6E1}.Release|x64.ActiveCfg = Release|Win32
+		{C315C636-C1B4-4ACB-89AE-98D35E19C6E1}.releaseMaya2011|Win32.ActiveCfg = Release|Win32
+		{C315C636-C1B4-4ACB-89AE-98D35E19C6E1}.releaseMaya2011|Win32.Build.0 = Release|Win32
+		{C315C636-C1B4-4ACB-89AE-98D35E19C6E1}.releaseMaya2011|x64.ActiveCfg = Release|Win32
+		{C315C636-C1B4-4ACB-89AE-98D35E19C6E1}.releaseMaya2012|Win32.ActiveCfg = Release|Win32
+		{C315C636-C1B4-4ACB-89AE-98D35E19C6E1}.releaseMaya2012|Win32.Build.0 = Release|Win32
+		{C315C636-C1B4-4ACB-89AE-98D35E19C6E1}.releaseMaya2012|x64.ActiveCfg = Release|Win32
+		{C315C636-C1B4-4ACB-89AE-98D35E19C6E1}.releaseMaya2013|Win32.ActiveCfg = releaseMaya2013|x64
+		{C315C636-C1B4-4ACB-89AE-98D35E19C6E1}.releaseMaya2013|Win32.Build.0 = releaseMaya2013|x64
+		{C315C636-C1B4-4ACB-89AE-98D35E19C6E1}.releaseMaya2013|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
