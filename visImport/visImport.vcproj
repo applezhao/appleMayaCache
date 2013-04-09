@@ -323,7 +323,7 @@
 		</Configuration>
 		<Configuration
 			Name="releaseMaya2013|Win32"
-			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			OutputDirectory="C:\Program Files\Autodesk\Maya2013\bin\plug-ins"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="1"
@@ -348,7 +348,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;C:\Program Files\Autodesk\Maya2012\include&quot;"
+				AdditionalIncludeDirectories="&quot;C:\Program Files\Autodesk\Maya2013\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VISIMPORT_EXPORTS;NT_PLUGIN"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -371,7 +371,7 @@
 				AdditionalDependencies="foundation.lib openmaya.lib openmayaanim.lib"
 				OutputFile="$(OutDir)\$(ProjectName).mll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="C:\Program Files\Autodesk\Maya2012\lib"
+				AdditionalLibraryDirectories="C:\Program Files\Autodesk\Maya2013\lib"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
